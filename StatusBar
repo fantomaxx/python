@@ -1,0 +1,49 @@
+import pymssql
+import os
+import time
+conn = pymssql.connect(host='', user='', password='', database='')
+cur = conn.cursor()
+cur.execute('select COUNT(*) from [POD-FT-ALL]')
+row = cur.fetchone()
+strok = str(row[0])
+
+cur.execute('select COUNT(*) from [!TabZeroTest]')
+row = cur.fetchone()
+zagr = str(row[0])
+
+if int(zagr) == 0 or zagr == strok:
+    os.system('cls')
+    q = input('Запустить модель ПОД/ФТ?: (y/n) >>>')
+    if q == 'y':
+        '''start jobs'''
+        cur.execute("exec msdb.dbo.sp_start_job @job_name='AdditionallyGetDataPODFT', @step_name='!GetdataPODF'")
+        print('Start GetDataPODFT JOB...')
+        time.sleep(7)
+
+        for line in open('PODFT.jobs'):
+            cur.execute(line)
+            print('Start Job >>>', line)
+            time.sleep(3)
+
+        while zagr != strok:
+            cur.execute('select COUNT(*) from [!TabZeroTest]')
+            row = cur.fetchone()
+            zagr = str(row[0])
+
+            os.system('cls')
+            print('\n',round(((int(zagr) / int(strok)) * 100), 1), "% [", '#' * int(((int(zagr) / int(strok)) * 50)),
+                  '-' * (50 - (int(((int(zagr) / int(strok)) * 50)))), '] 100%', sep='')
+            time.sleep(10)
+else:
+    while zagr != strok:
+        cur.execute('select COUNT(*) from [!TabZeroTest]')
+        row = cur.fetchone()
+        zagr = str(row[0])
+
+        os.system('cls')
+        print('\n',round(((int(zagr)/int(strok))*100), 1), "% [", '#' * int(((int(zagr)/int(strok))*50)),
+              '-' * (50 - (int(((int(zagr)/int(strok))*50)))),'] 100%', sep='')
+        time.sleep(10)
+conn.close()
+input('OK?')
+print('<<< End >>>')
